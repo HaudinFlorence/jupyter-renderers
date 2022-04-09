@@ -29,7 +29,9 @@
     "lib/*.d.ts",
     "lib/*.js",
     "style/*.*",
-    "style/index.js"
+    "style/index.js",
+    "src/tilelayers_options.json",
+    "lib/tilelayers_options.json"
   ],
   "scripts": {
     "build": "jlpm run build:lib && jlpm run build:labextension:dev",
@@ -61,6 +63,7 @@
   "devDependencies": {
     "@jupyterlab/builder": "^3.2.8",
     "@types/leaflet": "^1.4.0",
+    "@types/node": "^17.0.41",
     "npm-run-all": "^4.1.5",
     "rimraf": "^3.0.2",
     "typescript": "~4.1.3"

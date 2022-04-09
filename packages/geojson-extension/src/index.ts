@@ -3,11 +3,14 @@
 
 import { Widget } from '@lumino/widgets';
 
+
 import { Message } from '@lumino/messaging';
 
 import { IRenderMime } from '@jupyterlab/rendermime-interfaces';
 
 import { defaultSanitizer } from '@jupyterlab/apputils';
+
+//import 'tilelayers_options.json';
 
 import leaflet from 'leaflet';
 
@@ -18,7 +21,10 @@ import '../style/index.css';
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+import * as tilelayers_data from './tilelayers_options.json';
 
+
+console.log(tilelayers_data)
 /**
  * The CSS class to add to the GeoJSON Widget.
  */
@@ -55,18 +61,76 @@ leaflet.Icon.Default.mergeOptions({
  * The url template that leaflet tile layers.
  * See http://leafletjs.com/reference-1.0.3.html#tilelayer
  */
-const URL_TEMPLATE = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+//const URL_TEMPLATE = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 /**
  * The options for leaflet tile layers.
  * See http://leafletjs.com/reference-1.0.3.html#tilelayer
  */
-const LAYER_OPTIONS: leaflet.TileLayerOptions = {
+//const LAYER_OPTIONS: leaflet.TileLayerOptions = {
+  //attribution:
+    //'Map data (c) <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+  //minZoom: 0,
+ // maxZoom: 18,
+//};
+
+
+//const url1 = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+//const layer1_options : leaflet.TileLayerOptions = {
+  //attribution:
+   // 'Map data (c) <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+  //minZoom: 0,
+ ////maxZoom: 18,
+//};
+
+//const url3 = tilelayers_data['OpenStreetMap.Mapnik'].url
+//const layer3_options : leaflet.TileLayerOptions = {
+  //attribution:
+  //tilelayers_data['OpenStreetMap.Mapnik'].attribution,
+  //minZoom : tilelayers_data['OpenStreetMap.Mapnik'].minZoom,
+ //maxZoom: 18,
+//};
+
+
+const url2 = "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+const layer2_options : leaflet.TileLayerOptions = {
   attribution:
-    'Map data (c) <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+    'Map data: (C) OpenStreetMap contributors, SRTM | Map style: (C) OpenTopoMap (CC-BY-SA)',
   minZoom: 0,
-  maxZoom: 18,
+ maxZoom: 18,
 };
+
+const url4 = "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png"
+const layer4_options : leaflet.TileLayerOptions = {
+  attribution:
+'Map data: (C) OpenStreetMap contributors, SRTM | Map style: (C) OpenTopoMap (CC-BY-SA)',
+minZoom: 0,
+maxZoom: 18,
+};
+
+const url1 = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+const layer1_options : leaflet.TileLayerOptions = {
+  attribution:
+'Tiles (C) Esri -- Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"',
+minZoom: 0,
+maxZoom: 18,
+};
+var layer1 = leaflet.tileLayer(url1, layer1_options);
+var layer2 = leaflet.tileLayer(url2, layer2_options);
+//var layer3 = leaflet.tileLayer(url3, layer3_options);
+var layer4 = leaflet.tileLayer(url4, layer4_options);
+var baseMaps = {
+  "Esri.WorldStreetMap": layer1,
+  "OpentoMap": layer2,
+  //"OpenStreetMap.Mapnik": layer3,
+  "OpenVK": layer4,
+
+
+};
+
+var overlayMaps = {}
+var layer_control = leaflet.control.layers(baseMaps, overlayMaps)
+
 
 export class RenderedGeoJSON extends Widget implements IRenderMime.IRenderer {
   /**
@@ -100,15 +164,15 @@ export class RenderedGeoJSON extends Widget implements IRenderMime.IRenderer {
    */
   renderModel(model: IRenderMime.IMimeModel): Promise<void> {
     const data = model.data[this._mimeType] as any | GeoJSON.GeoJsonObject;
-    const metadata = (model.metadata[this._mimeType] as any) || {};
+    //const metadata = (model.metadata[this._mimeType] as any) || {};
     return new Promise<void>((resolve, reject) => {
       // Add leaflet tile layer to map
-      leaflet
-        .tileLayer(
-          metadata.url_template || URL_TEMPLATE,
-          metadata.layer_options || LAYER_OPTIONS
-        )
-        .addTo(this._map);
+     // leaflet
+       // .tileLayer(
+          //metadata.url_template || URL_TEMPLATE,
+          //metadata.layer_options || LAYER_OPTIONS
+        //)
+        layer_control.addTo(this._map);
       // Create GeoJSON layer from data and add to map
       this._geoJSONLayer = leaflet
         .geoJSON(data, {
