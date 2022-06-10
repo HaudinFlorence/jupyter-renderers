@@ -10,8 +10,6 @@ import { IRenderMime } from '@jupyterlab/rendermime-interfaces';
 
 import { defaultSanitizer } from '@jupyterlab/apputils';
 
-//import 'tilelayers_options.json';
-
 import leaflet from 'leaflet';
 
 import 'leaflet/dist/leaflet.css';
