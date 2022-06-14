@@ -19,10 +19,9 @@ import '../style/index.css';
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
-import * as tilelayers_data from './tilelayers_options.json';
-
-
-console.log(tilelayers_data)
+var tilelayers_data = require('./providers.json')
+var access_data = require('./access_data.json')
+console.log(access_data)
 /**
  * The CSS class to add to the GeoJSON Widget.
  */
@@ -72,63 +71,40 @@ leaflet.Icon.Default.mergeOptions({
  // maxZoom: 18,
 //};
 
+var key_value =[];
+for (let [key, val] of Object.entries(tilelayers_data)){
+  var APIname = key
+  if (Object.keys(val).includes('url')){
 
-//const url1 = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-//const layer1_options : leaflet.TileLayerOptions = {
-  //attribution:
-   // 'Map data (c) <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-  //minZoom: 0,
- ////maxZoom: 18,
-//};
+    if (Object.keys(access_data).includes(APIname)){
+      console.log('APIkey needed')
+    }
+    else{
+      var name = tilelayers_data[key].name
+      var layer = leaflet.tileLayer(tilelayers_data[key].url, tilelayers_data[key]);
+      key_value.push([name,layer])
+    }
+  }
 
-//const url3 = tilelayers_data['OpenStreetMap.Mapnik'].url
-//const layer3_options : leaflet.TileLayerOptions = {
-  //attribution:
-  //tilelayers_data['OpenStreetMap.Mapnik'].attribution,
-  //minZoom : tilelayers_data['OpenStreetMap.Mapnik'].minZoom,
- //maxZoom: 18,
-//};
+  else{
+  var newData = val;
 
+    for (let newKey of Object.keys(newData)) {
+      if (Object.keys(access_data).includes(APIname)){
+        console.log('APIkey needed')
+      }
+      else{
+      var name = tilelayers_data[key][newKey].name
+      var layer = leaflet.tileLayer(tilelayers_data[key][newKey].url, tilelayers_data[key][newKey]);
+      key_value.push([name,layer])
+      }
+    }
+  }
+}
 
-const url2 = "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-const layer2_options : leaflet.TileLayerOptions = {
-  attribution:
-    'Map data: (C) OpenStreetMap contributors, SRTM | Map style: (C) OpenTopoMap (CC-BY-SA)',
-  minZoom: 0,
- maxZoom: 18,
-};
-
-const url4 = "https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png"
-const layer4_options : leaflet.TileLayerOptions = {
-  attribution:
-'Map data: (C) OpenStreetMap contributors, SRTM | Map style: (C) OpenTopoMap (CC-BY-SA)',
-minZoom: 0,
-maxZoom: 18,
-};
-
-const url1 = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
-const layer1_options : leaflet.TileLayerOptions = {
-  attribution:
-'Tiles (C) Esri -- Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"',
-minZoom: 0,
-maxZoom: 18,
-};
-var layer1 = leaflet.tileLayer(url1, layer1_options);
-var layer2 = leaflet.tileLayer(url2, layer2_options);
-//var layer3 = leaflet.tileLayer(url3, layer3_options);
-var layer4 = leaflet.tileLayer(url4, layer4_options);
-var baseMaps = {
-  "Esri.WorldStreetMap": layer1,
-  "OpentoMap": layer2,
-  //"OpenStreetMap.Mapnik": layer3,
-  "OpenVK": layer4,
-
-
-};
-
+const baseMaps = Object.fromEntries(key_value);
 var overlayMaps = {}
 var layer_control = leaflet.control.layers(baseMaps, overlayMaps)
-
 
 export class RenderedGeoJSON extends Widget implements IRenderMime.IRenderer {
   /**
@@ -164,13 +140,17 @@ export class RenderedGeoJSON extends Widget implements IRenderMime.IRenderer {
     const data = model.data[this._mimeType] as any | GeoJSON.GeoJsonObject;
     //const metadata = (model.metadata[this._mimeType] as any) || {};
     return new Promise<void>((resolve, reject) => {
+    //----------------------A SINGLE TILELAYER ---------------------------------------
       // Add leaflet tile layer to map
      // leaflet
        // .tileLayer(
           //metadata.url_template || URL_TEMPLATE,
           //metadata.layer_options || LAYER_OPTIONS
         //)
+      //----------------------SWITCH BETWEEN TILELAYERS ------------------------------
+        // Add a layer_control to switch betweem tilelayers
         layer_control.addTo(this._map);
+      //------------------------------------------------------------------------------
       // Create GeoJSON layer from data and add to map
       this._geoJSONLayer = leaflet
         .geoJSON(data, {
